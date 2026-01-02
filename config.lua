@@ -9,7 +9,8 @@ Config.XP = {
 Config.Rewards = {
     {type = "cash", amount = 2500},
     {type = "item", name = "phone"},
-    {type = "item", name = "radio"}
+    {type = "item", name = "radio"},
+    {type = "item", name = "fixkit"}
 }
 
 Config.Playtime = 10

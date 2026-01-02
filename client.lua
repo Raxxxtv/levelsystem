@@ -17,10 +17,3 @@ RegisterCommand('level', function()
         )
     end)
 end)
-
-CreateThread(function()
-    while true do
-        Wait(Config.Playtime * 1000)
-        TriggerServerEvent('levelsystem:heartbeat')
-    end
-end)

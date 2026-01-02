@@ -105,29 +105,32 @@ RegisterCommand('setlevel', function(source, args)
     TriggerClientEvent("esx:showNotification", target, ("Dein Level wurde von einem Admin geändert. Dein neues Level: ~g~%s"):format(level), "info", 5000, "Levelsystem")
 end)
 
-local lastReward = {}
-local tries = {}
+local startetTimers = {}
 
-RegisterNetEvent('levelsystem:heartbeat', function()
-    local src = source
-    local xPlayer = ESX.GetPlayerFromId(src)
-    if not xPlayer then return end
+function CreateXPTimer(source)
+    StopXPTimer(source)
 
-    local now = os.time()
-    lastReward[src] = lastReward[src] or (now - Config.Playtime)
-    tries[src] = tries[src] or 0
-
-    if lastReward[src] and now - lastReward[src] < Config.Playtime then
-        tries[src] = tries[src] + 1
-        if tries[src] >= 3 then
-            DropPlayer(src, "Cheater erkannt")
-            return
+    startetTimers[source] = ESX.SetTimeout(Config.Playtime * 1000, function()
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if not xPlayer then 
+            StopXPTimer(source)
+            return 
         end
-        return
-    end
+        addXP(xPlayer, Config.XP.playtime)
+        CreateXPTimer(source)
+    end)
+end
 
-    lastReward[src] = now
-    tries[src] = 0
+function StopXPTimer(source)
+    if not startetTimers[source] then return end
+    ESX.ClearTimeout(startetTimers[source])
+    startetTimers[source] = nil
+end
 
-    TriggerEvent('levelsystem:addXP', src, Config.XP.playtime)
+AddEventHandler('esx:playerDropped', function (playerId)
+    StopXPTimer(playerId)
+end)
+
+AddEventHandler('esx:playerLoaded', function(playerId)
+    CreateXPTimer(playerId)
 end)
