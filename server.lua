@@ -69,7 +69,7 @@ end)
 
 RegisterCommand('resetlevel', function(source, args)
     local xPlayer = ESX.GetPlayerFromId(source)
-    local group = xPlayer.group
+    local group = xPlayer.getGroup()
     local target = tonumber(args[1]) or source
     if not AllowedGroups[group] then
         TriggerClientEvent("esx:showNotification", source, "Du hast keine Berechtigung um diesen Command auszuführen", "error", 1500, "Levelsystem")
@@ -92,7 +92,7 @@ end)
 
 RegisterCommand('setlevel', function(source, args)
     local xPlayer = ESX.GetPlayerFromId(source)
-    local group = xPlayer.group
+    local group = xPlayer.getGroup()
     local target = tonumber(args[1]) or source
     local level = tonumber(args[2])
     if not AllowedGroups[group] then
@@ -105,6 +105,7 @@ RegisterCommand('setlevel', function(source, args)
     end
     if level < 1 or level > 200 then
         TriggerClientEvent("esx:showNotification", source, "Du musst ein gültiges Level angeben (zwischen 1 und 200)", "error", 1500, "Levelsystem")
+        return
     end
     local xTarget = ESX.GetPlayerFromId(target)
     if not xTarget then
