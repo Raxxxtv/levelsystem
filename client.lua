@@ -7,10 +7,10 @@ TriggerEvent('chat:addSuggestion', '/setlevel', 'Setzt das Level eines Spielers'
 })
 
 RegisterCommand('level', function()
-    ESX.TriggerServerCallback('levelsystem:getData', function(data)
+    ESX.TriggerServerCallback('levelsystem:GetData', function(data)
         if not data then return end
 
-        local needed = data.level * data.level * 100
+        local needed = Config.RequiredXP(data.level)
         ESX.ShowNotification(
             ('Level: ~b~%s\nXP: ~y~%s~s~/~y~%s')
             :format(data.level, data.xp, needed)

@@ -24,3 +24,9 @@ Config.AllowedGroups = {
     owner = true,
     mod = true
 }
+
+Config.JobXP = {
+    police = 1.5,
+    ambulance = 1.3,
+    mechanic = 1.2
+}
