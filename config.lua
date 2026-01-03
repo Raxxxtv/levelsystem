@@ -30,3 +30,8 @@ Config.JobXP = {
     ambulance = 1.3,
     mechanic = 1.2
 }
+
+Config.DailyXP = {
+    min = 10,
+    max = 5000
+}

@@ -11,9 +11,6 @@ RegisterCommand('level', function()
         if not data then return end
 
         local needed = Config.RequiredXP(data.level)
-        ESX.ShowNotification(
-            ('Level: ~b~%s\nXP: ~y~%s~s~/~y~%s')
-            :format(data.level, data.xp, needed)
-        )
+        ESX.ShowNotification(('Level: ~b~%s\nXP: ~y~%s~s~/~y~%s'):format(data.level, data.xp, needed), 'info', 5000, "Levelsystem")
     end)
 end)

@@ -2,6 +2,11 @@ local ESX = exports['es_extended']:getSharedObject()
 
 local AllowedGroups = Config.AllowedGroups
 
+local function GetToday()
+    local date = os.date('*t')
+    return string.format('%04d-%02d-%02d', date.year, date.month, date.day)
+end
+
 local function GetLevelData(xPlayer)
     local data = xPlayer.getMeta('levelsystem')
 
@@ -87,6 +92,38 @@ RegisterCommand('resetlevel', function(source, args)
     SaveLevelData(xTarget, data)
     TriggerClientEvent("esx:showNotification", source, "Das Level und die XP des Spielers wurden Erfolgreich zurückgesetzt", "success", 5000, "Levelsystem")
     TriggerClientEvent("esx:showNotification", target, "Dein Level und deine XP wurden zurückgesetzt", "info", 5000, "Levelsystem")
+end)
+
+local function GiveDailyXP(xPlayer)
+    local meta = GetLevelData(xPlayer)
+    meta.daily = meta.daily or {}
+
+    local today = GetToday()
+
+    local XP = math.random(Config.DailyXP.min, Config.DailyXP.max)
+
+    if meta.daily.last == today then
+        return false
+    end
+    
+    meta.daily.last = today
+    SaveLevelData(xPlayer, meta)
+    TriggerEvent('levelsystem:AddXP', xPlayer.source, XP)
+
+    return true, XP
+end
+
+RegisterCommand('daily', function(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
+
+    local GiveXP, XP = GiveDailyXP(xPlayer)
+
+    if GiveXP then
+        TriggerClientEvent("esx:showNotification", source, ("Du hast deine DailyXP erhalten ~g~(%s)"):format(XP), "success", 5000, "Levelsystem")
+    else
+        TriggerClientEvent("esx:showNotification", source, "Du hast deine DailyXP heute schon eingelöst", "error", 5000, "Levelsystem")
+    end
 end)
 
 
