@@ -177,7 +177,7 @@ RegisterCommand("levelsystem_debug", function(source)
         return
     end
     if Debug[source] then
-        Debug[source] = false
+        Debug[source] = nil
     else
         Debug[source] = true
     end
