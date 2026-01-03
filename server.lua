@@ -1,6 +1,7 @@
 local ESX = exports['es_extended']:getSharedObject()
 
 local AllowedGroups = Config.AllowedGroups
+local Debug = {}
 
 local function GetToday()
     local date = os.date('*t')
@@ -102,27 +103,37 @@ local function GiveDailyXP(xPlayer)
 
     local XP = math.random(Config.DailyXP.min, Config.DailyXP.max)
 
-    if meta.daily.last == today then
-        return false
+    if meta.daily.last == today and not Debug[xPlayer.source] then
+        return false, "claimed"
+    end
+
+    local now = os.time()
+
+    if not meta.JoinTime or (now - meta.JoinTime) < Config.TimeTillDaily then
+        local remaining = Config.TimeTillDaily - (now - (meta.JoinTime or now))
+        return false, "time", remaining
     end
     
     meta.daily.last = today
     SaveLevelData(xPlayer, meta)
     TriggerEvent('levelsystem:AddXP', xPlayer.source, XP)
 
-    return true, XP
+    return true, "Success", XP
 end
 
 RegisterCommand('daily', function(source)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return end
 
-    local GiveXP, XP = GiveDailyXP(xPlayer)
+    local GiveXP, Reason, Data = GiveDailyXP(xPlayer)
 
     if GiveXP then
-        TriggerClientEvent("esx:showNotification", source, ("Du hast deine DailyXP erhalten ~g~(%s)"):format(XP), "success", 5000, "Levelsystem")
-    else
+        TriggerClientEvent("esx:showNotification", source, ("Du hast deine DailyXP erhalten ~g~(%s)"):format(Data), "success", 5000, "Levelsystem")
+    elseif Reason == "claimed" then
         TriggerClientEvent("esx:showNotification", source, "Du hast deine DailyXP heute schon eingelöst", "error", 5000, "Levelsystem")
+    elseif Reason == "time" then
+        local minutes = math.ceil(Data / 60)
+        TriggerClientEvent("esx:showNotification", source, ("Du kannst deine DailyXP erst in in ~g~%s Minuten~s~ abholen"):format(minutes), "error", 5000, "Levelsystem")
     end
 end)
 
@@ -158,6 +169,20 @@ RegisterCommand('setlevel', function(source, args)
     TriggerClientEvent("esx:showNotification", target, ("Dein Level wurde von einem Admin geändert. Dein neues Level: ~g~%s"):format(level), "info", 5000, "Levelsystem")
 end)
 
+RegisterCommand("levelsystem_debug", function(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    local group = xPlayer.getGroup()
+    if not AllowedGroups[group] then
+        TriggerClientEvent("esx:showNotification", source, "Du hast keine Berechtigung um diesen Command auszuführen", "error", 1500, "Levelsystem")
+        return
+    end
+    if Debug[source] then
+        Debug[source] = false
+    else
+        Debug[source] = true
+    end
+end)
+
 local StartedTimers = {}
 
 function CreateXPTimer(source)
@@ -186,4 +211,10 @@ end)
 
 AddEventHandler('esx:playerLoaded', function(playerId)
     CreateXPTimer(playerId)
+    local xPlayer = ESX.GetPlayerFromId(playerId)
+    if not xPlayer then return end
+
+    local meta = GetLevelData(xPlayer)
+    meta.JoinTime = os.time()
+    SaveLevelData(xPlayer, meta)
 end)

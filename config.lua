@@ -13,7 +13,7 @@ Config.Rewards = {
     {type = "item", name = "fixkit"}
 }
 
-Config.Playtime = 10
+Config.Playtime = 10 --Sekunden
 
 Config.RequiredXP = function(level)
     return level * level * 100
@@ -35,3 +35,5 @@ Config.DailyXP = {
     min = 10,
     max = 5000
 }
+
+Config.TimeTillDaily = 60 -- Sekunden
