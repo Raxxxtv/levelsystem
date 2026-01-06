@@ -7,6 +7,9 @@ local function GetToday()
     local date = os.date('*t')
     return string.format('%04d-%02d-%02d', date.year, date.month, date.day)
 end
+local function GetWeek()
+    return os.date("%Y-%W")
+end
 
 local function GetLevelData(xPlayer)
     local data = xPlayer.getMeta('levelsystem')
@@ -121,6 +124,31 @@ local function GiveDailyXP(xPlayer)
     return true, "Success", XP
 end
 
+local function GiveWeeklyXP(xPlayer)
+    local meta = GetLevelData(xPlayer)
+    meta.weekly = meta.weekly or {}
+
+    local currentWeek = GetWeek()
+    local XP = math.random(Config.WeeklyXP.min, Config.WeeklyXP.max)
+
+    if meta.weekly.last == currentWeek and not Debug[xPlayer.source] then
+        return false, "claimed"
+    end
+    local now = os.time()
+
+    if not meta.JoinTime or (now - meta.JoinTime) < Config.TimeTillDaily then
+        local remaining = Config.TimeTillDaily - (now - (meta.JoinTime or now))
+        return false, "time", remaining
+    end
+
+    meta.weekly.last = currentWeek
+    SaveLevelData(xPlayer, meta)
+
+    TriggerEvent('levelsystem:AddXP', xPlayer.source, XP)
+
+    return true, "success", XP
+end
+
 RegisterCommand('daily', function(source)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then return end
@@ -128,15 +156,30 @@ RegisterCommand('daily', function(source)
     local GiveXP, Reason, Data = GiveDailyXP(xPlayer)
 
     if GiveXP then
-        TriggerClientEvent("esx:showNotification", source, ("Du hast deine DailyXP erhalten ~g~(%s)"):format(Data), "success", 5000, "Levelsystem")
+        TriggerClientEvent("esx:showNotification", source, ("Du hast deine DailyXP erhalten ~g~(%s XP)"):format(Data), "success", 5000, "Levelsystem")
     elseif Reason == "claimed" then
         TriggerClientEvent("esx:showNotification", source, "Du hast deine DailyXP heute schon eingelöst", "error", 5000, "Levelsystem")
     elseif Reason == "time" then
         local minutes = math.ceil(Data / 60)
-        TriggerClientEvent("esx:showNotification", source, ("Du kannst deine DailyXP erst in in ~g~%s Minuten~s~ abholen"):format(minutes), "error", 5000, "Levelsystem")
+        TriggerClientEvent("esx:showNotification", source, ("Du kannst deine DailyXP erst in ~g~%s Minuten~s~ abholen"):format(minutes), "error", 5000, "Levelsystem")
     end
 end)
 
+RegisterCommand('weekly', function(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return end
+    
+    local GiveXP, Reason, Data = GiveWeeklyXP(xPlayer)
+
+    if GiveXP then
+        TriggerClientEvent("esx:showNotification", source, ("Du hast deine WeeklyXP erhalten ~g~(%s XP)"):format(Data), "success", 5000, "Levelsystem")
+    elseif Reason == "claimed" then
+        TriggerClientEvent("esx:showNotification", source, "Du hast deine WeeklyXP schon eingelöst", "error", 5000, "Levelsystem")
+    elseif Reason == "time" then
+        local minutes = math.ceil(Data / 60)
+        TriggerClientEvent("esx:showNotification", source, ("Du kannst deine WeeklyXP erst in ~g~%s Minuten~s~ abholen"):format(minutes), "error", 5000, "Levelsystem")
+    end
+end)
 
 RegisterCommand('setlevel', function(source, args)
     local xPlayer = ESX.GetPlayerFromId(source)

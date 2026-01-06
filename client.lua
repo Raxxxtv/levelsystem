@@ -6,6 +6,7 @@ TriggerEvent('chat:addSuggestion', '/setlevel', 'Setzt das Level eines Spielers'
     { name="Level", help="Hier musst du das Level angeben, welches du dem Spieler geben möchtest" }
 })
 TriggerEvent('chat:addSuggestion', '/daily', 'Gibt dir deine Tägliche Belohnung')
+TriggerEvent('chat:addSuggestion', '/weekly', 'Gibt dir deine wöchentliche Belohnung')
 
 RegisterCommand('level', function()
     ESX.TriggerServerCallback('levelsystem:GetData', function(data)

@@ -1,8 +1,6 @@
 Config = {}
 
 Config.XP = {
-    kill = 50,
-    job = 25,
     playtime = 50
 }
 
@@ -36,4 +34,10 @@ Config.DailyXP = {
     max = 5000
 }
 
-Config.TimeTillDaily = 60 -- Sekunden
+Config.WeeklyXP = {
+    min = 1000,
+    max = 10000
+}
+
+Config.TimeTillDaily = 120 -- Sekunden
+Config.TimeTillWeekly = 120
