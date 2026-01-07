@@ -136,7 +136,7 @@ local function GiveWeeklyXP(xPlayer)
     end
     local now = os.time()
 
-    if not meta.JoinTime or (now - meta.JoinTime) < Config.TimeTillDaily then
+    if not meta.JoinTime or (now - meta.JoinTime) < Config.TimeTillWeekly then
         local remaining = Config.TimeTillDaily - (now - (meta.JoinTime or now))
         return false, "time", remaining
     end
