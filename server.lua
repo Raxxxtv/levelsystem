@@ -33,25 +33,7 @@ local function SaveLevelData(xPlayer, data)
     xPlayer.setMeta('levelsystem', data)
 end
 
-local function AddXP(xPlayer, amount)
-    local data = GetLevelData(xPlayer)
-
-    data.xp = data.xp + amount
-
-    local needed = Config.RequiredXP(data.level)
-
-    while data.xp >= needed do
-        data.xp = data.xp - needed
-        data.level = data.level + 1
-        needed = Config.RequiredXP(data.level)
-
-        TriggerEvent('levelsystem:LevelUp', xPlayer.source, data.level)
-    end
-
-    SaveLevelData(xPlayer, data)
-end
-
-AddEventHandler('levelsystem:LevelUp', function(id, newLevel)
+local function LevelUp(id, newLevel)
     TriggerClientEvent("esx:showNotification", id,("Glückwunsch! Neues Level: ~g~%s"):format(newLevel), "info", 5000, "Levelsystem")
     local reward = Config.Rewards[math.random(#Config.Rewards)]
     local xPlayer = ESX.GetPlayerFromId(id)
@@ -60,13 +42,32 @@ AddEventHandler('levelsystem:LevelUp', function(id, newLevel)
     elseif reward.type == 'item' then
         xPlayer.addInventoryItem(reward.name, 1)
     end
-end)
+end
+
+local function AddXP(xPlayer, amount)
+    local data = GetLevelData(xPlayer)
+
+    local xp = math.floor(amount * GetPlayerMultiplier(xPlayer))
+
+    data.xp = data.xp + xp
+
+    local needed = Config.RequiredXP(data.level)
+
+    while data.xp >= needed do
+        data.xp = data.xp - needed
+        data.level = data.level + 1
+        needed = Config.RequiredXP(data.level)
+
+        LevelUp(xPlayer.source, data.level)
+    end
+
+    SaveLevelData(xPlayer, data)
+end
 
 AddEventHandler('levelsystem:AddXP', function(id, amount)
     local xPlayer = ESX.GetPlayerFromId(id)
     if not xPlayer then return end
-    local xp = math.floor(amount * GetPlayerMultiplier(xPlayer))
-    AddXP(xPlayer, xp)
+    AddXP(xPlayer, amount)
 end)
 
 ESX.RegisterServerCallback('levelsystem:GetData', function(source, cb)
@@ -119,7 +120,7 @@ local function GiveDailyXP(xPlayer)
     
     meta.daily.last = today
     SaveLevelData(xPlayer, meta)
-    TriggerEvent('levelsystem:AddXP', xPlayer.source, XP)
+    AddXP(xPlayer.source, XP)
 
     return true, "Success", XP
 end
@@ -144,7 +145,7 @@ local function GiveWeeklyXP(xPlayer)
     meta.weekly.last = currentWeek
     SaveLevelData(xPlayer, meta)
 
-    TriggerEvent('levelsystem:AddXP', xPlayer.source, XP)
+    AddXP(xPlayer.source, XP)
 
     return true, "success", XP
 end
@@ -237,7 +238,7 @@ function CreateXPTimer(source)
             StopXPTimer(source)
             return 
         end
-        TriggerEvent("levelsystem:AddXP", source, Config.XP.playtime)
+        AddXP(source, Config.XP.playtime)
         CreateXPTimer(source)
     end)
 end
